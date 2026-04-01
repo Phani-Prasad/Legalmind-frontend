@@ -1,0 +1,68 @@
+.neural-logo-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+}
+
+.neural-scale-svg {
+  filter: drop-shadow(0 0 8px rgba(217, 119, 6, 0.2));
+}
+
+.pillar-line {
+  stroke: var(--primary);
+  stroke-linecap: round;
+}
+
+.beam-path {
+  stroke: var(--gold);
+  stroke-linecap: round;
+}
+
+.node {
+  fill: var(--gold);
+  filter: url(#glow);
+}
+
+.web-line {
+  stroke: var(--gold);
+  opacity: 0.3;
+}
+
+.bowl-path {
+  fill: rgba(15, 23, 42, 0.05);
+  stroke: var(--primary);
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+/* Animations */
+@keyframes nodePulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pulse-1 { animation: nodePulse 3s infinite ease-in-out; }
+.pulse-2 { animation: nodePulse 3s infinite ease-in-out 1s; }
+.pulse-3 { animation: nodePulse 3s infinite ease-in-out 2s; }
+
+.pulse-beam { animation: nodePulse 2s infinite ease-in-out; }
+
+/* Interactive Tipping */
+.neural-logo-container:hover .scale-group {
+  animation: logoTip 1.5s ease-in-out;
+}
+
+@keyframes logoTip {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.neural-logo-container:hover .bowl-path {
+  fill: rgba(217, 119, 6, 0.1);
+  stroke: var(--gold);
+}
