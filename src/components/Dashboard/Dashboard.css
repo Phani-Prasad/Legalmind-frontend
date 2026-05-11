@@ -32,7 +32,7 @@
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 24px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .welcome-banner {
@@ -137,7 +137,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 0px;
+}
+
+.section-header h2 {
+  color: #D35400; /* Burnt Orange from provided image */
+  margin: 0;
+  font-size: 2.2rem;
+  letter-spacing: -0.5px;
 }
 
 .filter-pills {
@@ -234,6 +241,127 @@
 .intel-card p {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+/* ── Syllabus Compass Enhancements ────────────────────────────────────────── */
+
+.search-box-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  min-width: 300px;
+}
+
+.search-box-inline input {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.95rem;
+  width: 100%;
+  outline: none;
+}
+
+.semester-tabs-container {
+  margin: -5px 0 15px 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.semester-tabs {
+  display: flex;
+  gap: 12px;
+  width: fit-content;
+}
+
+.sem-tab {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.sem-tab:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.sem-tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.pinned-section {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #fffbeb;
+  border-radius: 24px;
+  border: 1px solid #fef3c7;
+}
+
+.section-mini-title {
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+}
+
+.pin-icon {
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.pin-icon:hover {
+  background: #f1f5f9;
+  color: var(--gold);
+  transform: rotate(45deg);
+}
+
+.pin-icon.active {
+  color: var(--gold);
+  fill: var(--gold);
+  background: #fff7ed;
+}
+
+.pinned-label {
+  font-size: 0.7rem;
+  background: var(--gold);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.subject-card-new.pinned {
+  border-left: 5px solid var(--gold);
+  background: white;
+}
+
+.subject-icon-box.gold {
+  background: var(--gold);
+  color: white;
 }
 
 /* ── Mobile Responsive ────────────────────────────────────────────────────── */

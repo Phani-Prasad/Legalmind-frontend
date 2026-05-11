@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, LogIn } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE } from '../../config';
+import BrandLogo from '../Branding/BrandLogo';
 import './Auth.css';
 
 const Login = () => {
@@ -28,7 +29,7 @@ const Login = () => {
       if (!res.ok) throw new Error(data.detail || 'Login failed');
 
       login(data.access_token, { name: data.name, email: data.email });
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -40,8 +41,7 @@ const Login = () => {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <img src="/legaify_logo.png" alt="Legaify" />
-          <div><span className="badge-kslu">KSLU Edition</span></div>
+          <BrandLogo size={40} textSize="1.8rem" showBadge={true} />
         </div>
 
         <h1 className="auth-title">Welcome Back</h1>

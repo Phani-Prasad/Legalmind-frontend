@@ -1,7 +1,10 @@
 import React from 'react';
 import './Branding.css';
 
-const LegalmindLogo = ({ size = 48 }) => {
+const LegalmindLogo = ({ size = 48, inverse = false }) => {
+  const primaryColor = inverse ? '#ffffff' : 'var(--primary)';
+  const bowlFill = inverse ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.05)';
+
   return (
     <div className="neural-logo-container" style={{ width: size, height: size }}>
       <svg 
@@ -21,7 +24,7 @@ const LegalmindLogo = ({ size = 48 }) => {
         </defs>
 
         {/* The Central Pillar - The Pillar of Knowledge */}
-        <line x1="50" y1="20" x2="50" y2="85" className="pillar-line" strokeWidth="4" />
+        <line x1="50" y1="20" x2="50" y2="85" className="pillar-line" stroke={primaryColor} strokeWidth="4" />
         <circle cx="50" cy="20" r="4" className="node pulse-1" />
         <circle cx="50" cy="50" r="3" className="node pulse-2" />
         <circle cx="50" cy="85" r="5" className="node pulse-3" />
@@ -34,9 +37,9 @@ const LegalmindLogo = ({ size = 48 }) => {
         {/* The Scales - The Balance of AI Justice */}
         <g className="scale-group">
           {/* Left Bowl */}
-          <path d="M20 40 L10 70 A15 5 0 0 0 30 70 Z" className="bowl-path" />
+          <path d="M20 40 L10 70 A15 5 0 0 0 30 70 Z" className="bowl-path" fill={bowlFill} stroke={primaryColor} />
           {/* Right Bowl */}
-          <path d="M80 40 L70 70 A15 5 0 0 0 90 70 Z" className="bowl-path" />
+          <path d="M80 40 L70 70 A15 5 0 0 0 90 70 Z" className="bowl-path" fill={bowlFill} stroke={primaryColor} />
         </g>
         
         {/* Connection Lines (Neural Web) */}

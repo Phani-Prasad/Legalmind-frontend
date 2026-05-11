@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../../config';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Scale, FileText, ChevronRight, GraduationCap, Clock } from 'lucide-react';
+import { BookOpen, Scale, FileText, ChevronRight, GraduationCap, Clock, Pin, Search, Bookmark } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [syllabus, setSyllabus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('All Subjects');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('1st_Semester');
+  const [pinnedSubjects, setPinnedSubjects] = useState(() => {
+    const saved = localStorage.getItem('pinnedSubjects');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [judgmentIndex, setJudgmentIndex] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -65,8 +70,21 @@ const Dashboard = () => {
     fetchSyllabus();
   }, []);
 
-  const handleSubjectClick = (subjectKey) => {
-    navigate(`/tutor?subject=${subjectKey}`);
+  useEffect(() => {
+    localStorage.setItem('pinnedSubjects', JSON.stringify(pinnedSubjects));
+  }, [pinnedSubjects]);
+
+  const togglePin = (e, subjectKey) => {
+    e.stopPropagation();
+    setPinnedSubjects(prev => 
+      prev.includes(subjectKey) 
+        ? prev.filter(s => s !== subjectKey) 
+        : [...prev, subjectKey]
+    );
+  };
+
+  const handleSubjectClick = (subjectKey, semesterKey = selectedSemester) => {
+    navigate(`/dashboard/tutor?subject=${subjectKey}&semester=${semesterKey}`);
   };
 
   const nextJudgment = () => {
@@ -75,47 +93,51 @@ const Dashboard = () => {
 
   if (loading) return <div className="loading-screen">Loading Legaify Dashboard...</div>;
 
-  // Robust Dynamic Extraction
-  let subjects = [];
-  let semesterData = null;
+  const semesters = syllabus?.BA_LLB ? Object.keys(syllabus.BA_LLB) : [];
+  const currentSemesterSubjects = syllabus?.BA_LLB?.[selectedSemester] 
+    ? Object.keys(syllabus.BA_LLB[selectedSemester]) 
+    : [];
 
-  if (syllabus) {
-    try {
-      if (syllabus['BA_LLB'] && syllabus['BA_LLB']['1st_Semester']) {
-        semesterData = syllabus['BA_LLB']['1st_Semester'];
-      } else {
-        const firstProgramKey = Object.keys(syllabus)[0];
-        if (firstProgramKey && syllabus[firstProgramKey]) {
-          const firstSemesterKey = Object.keys(syllabus[firstProgramKey])[0];
-          if (firstSemesterKey) {
-            semesterData = syllabus[firstProgramKey][firstSemesterKey];
-          }
-        }
-      }
-      if (semesterData) subjects = Object.keys(semesterData);
-    } catch (err) {
-      console.error("Syllabus parsing error:", err);
+  const filteredSubjects = currentSemesterSubjects.filter(subKey => 
+    subKey.replace(/_/g, ' ').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const pinnedList = pinnedSubjects.filter(s => {
+    // Check if pinned subject exists in total syllabus
+    for (const sem in syllabus?.BA_LLB) {
+      if (syllabus.BA_LLB[sem][s]) return true;
     }
-  }
-
-  // Final Fallback
-  if (subjects.length === 0 && !loading) {
-    subjects = ['Law_of_Torts', 'Law_of_Contracts', 'Constitutional_Law', 'Criminal_Law_BNS'];
-    semesterData = {
-      'Law_of_Torts': { Unit_I: {} },
-      'Law_of_Contracts': { Unit_I: {} },
-      'Constitutional_Law': { Unit_I: {} },
-      'Criminal_Law_BNS': { Unit_I: {} }
-    };
-  }
-
-  const filteredSubjects = subjects.filter(subKey => {
-    if (!filter || filter === 'All Subjects') return true;
-    const subjectCategory = categoryMap[subKey] || 'Civil';
-    return subjectCategory === filter;
+    return false;
   });
 
   const currentJudgment = judgments[judgmentIndex];
+
+  // Calculate dynamic progress
+  const calculateProgress = () => {
+    if (!syllabus?.BA_LLB?.[selectedSemester]) return 0;
+    
+    const completed = JSON.parse(localStorage.getItem('completedTopics') || '[]');
+    let totalTopics = 0;
+    let completedInSem = 0;
+
+    const subjects = syllabus.BA_LLB[selectedSemester];
+    for (const subKey in subjects) {
+      const units = subjects[subKey];
+      for (const unitKey in units) {
+        const topics = units[unitKey].topics || [];
+        totalTopics += topics.length;
+        topics.forEach(t => {
+          if (completed.includes(`${selectedSemester}-${subKey}-${t}`)) {
+            completedInSem++;
+          }
+        });
+      }
+    }
+
+    return totalTopics > 0 ? Math.round((completedInSem / totalTopics) * 100) : 0;
+  };
+
+  const progressPercent = calculateProgress();
 
   return (
     <div className="dashboard-container fade-in">
@@ -134,10 +156,10 @@ const Dashboard = () => {
         <div className="welcome-banner glass">
           <div className="banner-text">
             <h2 className="serif">Syllabus Progress</h2>
-            <p>Your preparation for the upcoming semester exams is 45% complete. Focus on <b>Constitutional Law</b> today.</p>
+            <p>Your preparation for the <b>{selectedSemester.replace('_', ' ')}</b> exams is {progressPercent}% complete. Keep going!</p>
             <div className="progress-large">
-              <div className="progress-fill" style={{width: '45%'}}></div>
-              <span className="progress-label">45% Consumed</span>
+              <div className="progress-fill" style={{width: `${progressPercent}%`}}></div>
+              <span className="progress-label">{progressPercent}% Consumed</span>
             </div>
           </div>
         </div>
@@ -159,24 +181,67 @@ const Dashboard = () => {
       <section className="syllabus-explorer-section">
         <div className="section-header">
           <h2 className="serif">Syllabus Compass</h2>
-          <div className="filter-pills">
-            {['All Subjects', 'Civil', 'Criminal', 'Constitutional'].map(f => (
-              <span 
-                key={f}
-                className={`pill ${filter === f ? 'active' : ''}`}
-                onClick={() => setFilter(f)}
+          <div className="search-box-inline glass">
+            <Search size={16} />
+            <input 
+              type="text" 
+              placeholder="Quick search subjects..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {pinnedList.length > 0 && (
+          <div className="pinned-section">
+            <h3 className="section-mini-title"><Bookmark size={14} /> Pinned Subjects</h3>
+            <div className="subject-grid">
+              {pinnedList.map(subKey => {
+                // Find which semester this subject belongs to
+                let subSemester = selectedSemester;
+                for (const sem in syllabus?.BA_LLB) {
+                  if (syllabus.BA_LLB[sem][subKey]) {
+                    subSemester = sem;
+                    break;
+                  }
+                }
+
+                return (
+                  <div key={subKey} className="subject-card-new card pinned hover-lift" onClick={() => handleSubjectClick(subKey, subSemester)}>
+                  <div className="subject-icon-box gold">
+                    <BookOpen size={20} />
+                  </div>
+                  <div className="subject-info">
+                    <h3 className="subject-title">{subKey.replace(/_/g, ' ')}</h3>
+                    <div className="subject-footer">
+                      <span className="pinned-label">Active</span>
+                      <Pin size={16} className="pin-icon active" onClick={(e) => togglePin(e, subKey)} />
+                    </div>
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="semester-tabs-container">
+          <div className="semester-tabs">
+            {semesters.map(sem => (
+              <button 
+                key={sem} 
+                className={`sem-tab ${selectedSemester === sem ? 'active' : ''}`}
+                onClick={() => setSelectedSemester(sem)}
               >
-                {f}
-              </span>
+                {sem.replace('_', ' ')}
+              </button>
             ))}
           </div>
         </div>
 
         <div className="subject-grid">
           {filteredSubjects.length > 0 ? filteredSubjects.map((subKey) => {
-            const subjectData = semesterData[subKey];
-            if (!subjectData) return null;
-            const unitCount = Object.keys(subjectData).length;
+            const isPinned = pinnedSubjects.includes(subKey);
             
             return (
               <div key={subKey} className="subject-card-new card hover-lift" onClick={() => handleSubjectClick(subKey)}>
@@ -186,14 +251,18 @@ const Dashboard = () => {
                 <div className="subject-info">
                   <h3 className="subject-title">{subKey.replace(/_/g, ' ')}</h3>
                   <div className="subject-footer">
-                    <span>{unitCount} Units</span>
-                    <ChevronRight size={16} />
+                    <span>Syllabus Covered</span>
+                    <Pin 
+                      size={16} 
+                      className={`pin-icon ${isPinned ? 'active' : ''}`} 
+                      onClick={(e) => togglePin(e, subKey)} 
+                    />
                   </div>
                 </div>
               </div>
             );
           }) : (
-            <div className="empty-state">No subjects found in this category.</div>
+            <div className="empty-state">No subjects found for this semester.</div>
           )}
         </div>
       </section>
@@ -203,14 +272,14 @@ const Dashboard = () => {
           <h2 className="serif">Academic Intelligence</h2>
         </div>
         <div className="intel-grid">
-          <div className="intel-card card glass" onClick={() => navigate('/evaluator')}>
+          <div className="intel-card card glass" onClick={() => navigate('/dashboard/evaluator')}>
             <div className="intel-icon red"><FileText size={20} /></div>
             <div>
               <h3>Answer Evaluation</h3>
               <p>Get instant KSLU-standard grading on your answers.</p>
             </div>
           </div>
-          <div className="intel-card card glass" onClick={() => navigate('/videos')}>
+          <div className="intel-card card glass" onClick={() => navigate('/dashboard/videos')}>
             <div className="intel-icon blue"><GraduationCap size={20} /></div>
             <div>
               <h3>Lecture Analysis</h3>

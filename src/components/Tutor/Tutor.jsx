@@ -17,6 +17,10 @@ const Tutor = () => {
   const [loading, setLoading] = useState(false);
   const [explanation, setExplanation] = useState('');
   const [error, setError] = useState('');
+  const [completedTopics, setCompletedTopics] = useState(() => {
+    const saved = localStorage.getItem('completedTopics');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const location = useLocation();
 
@@ -26,17 +30,20 @@ const Tutor = () => {
         const response = await axios.get(`${API_BASE}/api/tutor/syllabus`);
         setSyllabus(response.data);
         
-        // Handle query param for subject selection
         const params = new URLSearchParams(location.search);
         const urlSubject = params.get('subject');
+        const urlSemester = params.get('semester');
         
-        const subjects = (response.data && response.data['BA_LLB'] && response.data['BA_LLB']['1st_Semester']) 
-          ? Object.keys(response.data['BA_LLB']['1st_Semester']) 
-          : [];
-
-        if (subjects.length > 0) {
-          const firstSubject = urlSubject && subjects.includes(urlSubject) ? urlSubject : subjects[0];
-          setSubject(firstSubject);
+        const programKey = 'BA_LLB';
+        const semKey = urlSemester || '1st_Semester';
+        
+        if (response.data[programKey] && response.data[programKey][semKey]) {
+          setSemester(semKey);
+          const subjects = Object.keys(response.data[programKey][semKey]);
+          if (subjects.length > 0) {
+            const selectedSub = urlSubject && subjects.includes(urlSubject) ? urlSubject : subjects[0];
+            setSubject(selectedSub);
+          }
         }
       } catch (err) {
         setError('Failed to load syllabus.');
@@ -104,6 +111,17 @@ const Tutor = () => {
     }
   };
 
+  const toggleCompletion = () => {
+    const topicId = `${semester}-${subject}-${topic}`;
+    setCompletedTopics(prev => {
+      const next = prev.includes(topicId) 
+        ? prev.filter(t => t !== topicId) 
+        : [...prev, topicId];
+      localStorage.setItem('completedTopics', JSON.stringify(next));
+      return next;
+    });
+  };
+
   if (!syllabus) return <div className="loading-state card glass">Loading KSLU Syllabus...</div>;
 
   const currentSubject = syllabus[program][semester][subject];
@@ -114,9 +132,23 @@ const Tutor = () => {
         <h3 className="serif">Syllabus Navigator</h3>
         
         <div className="select-group">
+          <label>Semester</label>
+          <select value={semester} onChange={(e) => {
+            const nextSem = e.target.value;
+            setSemester(nextSem);
+            const subjects = Object.keys(syllabus[program][nextSem]);
+            if (subjects.length > 0) setSubject(subjects[0]);
+          }}>
+            {Object.keys(syllabus[program]).map(sem => (
+              <option key={sem} value={sem}>{sem.replace('_', ' ')}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="select-group">
           <label>Subject</label>
           <select value={subject} onChange={(e) => setSubject(e.target.value)}>
-            {Object.keys(syllabus[program][semester]).map(s => (
+            {syllabus[program][semester] && Object.keys(syllabus[program][semester]).map(s => (
               <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
             ))}
           </select>
@@ -166,6 +198,20 @@ const Tutor = () => {
                 <Download size={18} /> Download PDF
               </button>
             </div>
+            
+            <div className="topic-completion-bar" style={{ marginBottom: '20px', padding: '15px', background: '#f8fafc', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 500 }}>
+                {completedTopics.includes(`${semester}-${subject}-${topic}`) ? '✅ You have completed this topic!' : 'Have you finished studying this topic?'}
+              </p>
+              <button 
+                className={`btn ${completedTopics.includes(`${semester}-${subject}-${topic}`) ? 'btn-success' : 'btn-primary'}`}
+                onClick={toggleCompletion}
+                style={{ padding: '6px 16px' }}
+              >
+                {completedTopics.includes(`${semester}-${subject}-${topic}`) ? 'Mark Incomplete' : 'Mark as Completed'}
+              </button>
+            </div>
+
             <div className="markdown-body">
               <ReactMarkdown>{explanation}</ReactMarkdown>
             </div>

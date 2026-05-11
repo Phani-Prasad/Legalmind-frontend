@@ -14,6 +14,8 @@ import VideoTutor from './components/Tutor/VideoTutor';
 import Dashboard from './components/Dashboard/Dashboard';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import LandingPage from './components/Landing/LandingPage';
+import BrandLogo from './components/Branding/BrandLogo';
 
 import './App.css';
 
@@ -22,7 +24,7 @@ import './App.css';
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null; // wait for localStorage restore
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -43,7 +45,7 @@ function AppShell() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   // Get initials from user name (e.g. "Rahul Sharma" → "RS")
@@ -62,33 +64,32 @@ function AppShell() {
       {/* Sidebar */}
       <aside className={`sidebar glass ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="logo">
-          <img src="/legaify_logo.png" alt="Legaify" style={{ width: '100%', maxWidth: '180px', marginBottom: '8px' }} />
-          <span className="badge-kslu">KSLU Edition</span>
+          <BrandLogo size={32} textSize="1.3rem" showBadge={true} />
         </div>
 
         <nav className="side-nav">
-          <Link to="/" className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => handleNavClick('dashboard')}>
+          <Link to="/dashboard" className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => handleNavClick('dashboard')}>
             <LayoutDashboard size={20} /> Dashboard
           </Link>
-          <Link to="/tutor" className={`nav-item ${activeTab === 'tutor' ? 'active' : ''}`} onClick={() => handleNavClick('tutor')}>
+          <Link to="/dashboard/tutor" className={`nav-item ${activeTab === 'tutor' ? 'active' : ''}`} onClick={() => handleNavClick('tutor')}>
             <BookOpen size={20} /> AI Tutor
           </Link>
-          <Link to="/cases" className={`nav-item ${activeTab === 'cases' ? 'active' : ''}`} onClick={() => handleNavClick('cases')}>
+          <Link to="/dashboard/cases" className={`nav-item ${activeTab === 'cases' ? 'active' : ''}`} onClick={() => handleNavClick('cases')}>
             <Scale size={20} /> Case Summarizer
           </Link>
-          <Link to="/evaluator" className={`nav-item ${activeTab === 'evaluator' ? 'active' : ''}`} onClick={() => handleNavClick('evaluator')}>
+          <Link to="/dashboard/evaluator" className={`nav-item ${activeTab === 'evaluator' ? 'active' : ''}`} onClick={() => handleNavClick('evaluator')}>
             <FileText size={20} /> Evaluator
           </Link>
-          <Link to="/quiz" className={`nav-item ${activeTab === 'quiz' ? 'active' : ''}`} onClick={() => handleNavClick('quiz')}>
+          <Link to="/dashboard/quiz" className={`nav-item ${activeTab === 'quiz' ? 'active' : ''}`} onClick={() => handleNavClick('quiz')}>
             <HelpCircle size={20} /> Exam Quiz
           </Link>
-          <Link to="/documents" className={`nav-item ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => handleNavClick('documents')}>
+          <Link to="/dashboard/documents" className={`nav-item ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => handleNavClick('documents')}>
             <FileText size={20} /> Document AI
           </Link>
-          <Link to="/videos" className={`nav-item ${activeTab === 'videos' ? 'active' : ''}`} onClick={() => handleNavClick('videos')}>
+          <Link to="/dashboard/videos" className={`nav-item ${activeTab === 'videos' ? 'active' : ''}`} onClick={() => handleNavClick('videos')}>
             <Play size={20} /> Video AI
           </Link>
-          <Link to="/planner" className={`nav-item ${activeTab === 'planner' ? 'active' : ''}`} onClick={() => handleNavClick('planner')}>
+          <Link to="/dashboard/planner" className={`nav-item ${activeTab === 'planner' ? 'active' : ''}`} onClick={() => handleNavClick('planner')}>
             <Calendar size={20} /> Study Planner
           </Link>
         </nav>
@@ -159,9 +160,10 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/*" element={
+          <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <AppShell />
             </ProtectedRoute>
